@@ -1,0 +1,8 @@
+FROM alpine:3.20
+RUN apk add --no-cache postgresql-client curl tzdata
+RUN mkdir -p /opt/backup
+WORKDIR /opt/backup
+COPY ucalc_backup/ucalc_backup.sh /opt/backup/backup.sh
+RUN chmod +x /opt/backup/backup.sh
+RUN echo "0 * * * * /opt/backup/backup.sh >> /var/log/backup.log 2>&1" > /etc/crontabs/root
+CMD ["crond", "-f", "-l", "2"]

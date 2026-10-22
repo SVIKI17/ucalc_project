@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ucalc — калькулятор единиц</title>
+    <link rel="stylesheet" href="/static/ucalc_style.css">
+</head>
+<body>
+<header>
+    <h1>ucalc</h1>
+    <p class="subtitle">Калькулятор единиц измерения</p>
+</header>
+
+<main>
+    <nav id="categories" class="categories"></nav>
+
+    <section class="card">
+        <div class="row">
+            <label class="grow">
+                Значение
+                <input id="value" type="number" step="any" value="1">
+            </label>
+            <label>
+                Из
+                <select id="from-unit"></select>
+            </label>
+            <label>
+                В
+                <select id="to-unit"></select>
+            </label>
+        </div>
+
+        <div class="result">
+            <span id="result-value">—</span>
+            <span id="result-unit"></span>
+        </div>
+
+        <label class="slider">
+            Точность: <span id="precision-label">2</span> знака
+            <input id="precision" type="range" min="0" max="10" step="1" value="2">
+        </label>
+
+        <button id="convert-btn">Сохранить в историю</button>
+    </section>
+
+    <section class="card">
+        <div class="history-header">
+            <h2>История</h2>
+            <button id="clear-history">Очистить</button>
+        </div>
+        <ul id="history"></ul>
+    </section>
+</main>
+
+<script src="/static/ucalc_index.js"></script>
+</body>
+</html>

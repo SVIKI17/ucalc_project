@@ -1,0 +1,85 @@
+services:
+  ucalc_db:
+    image: postgres:17-alpine
+    container_name: ucalc_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${UCALC_DB_USER}
+      POSTGRES_PASSWORD: ${UCALC_DB_PASSWORD}
+      POSTGRES_DB: ${UCALC_DB_NAME}
+    volumes:
+      - ucalc_pgdata:/var/lib/postgresql/data
+    networks:
+      - ucalc_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${UCALC_DB_USER} -d ${UCALC_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ucalc_api:
+    build:
+      context: .
+      dockerfile: ucalc_api/ucalc_Dockerfile.api
+    container_name: ucalc_api
+    restart: unless-stopped
+    environment:
+      UCALC_DB_URL: postgresql+psycopg://${UCALC_DB_USER}:${UCALC_DB_PASSWORD}@ucalc_db:5432/${UCALC_DB_NAME}
+      UCALC_DROPBOX_TOKEN: ${UCALC_DROPBOX_TOKEN}
+    depends_on:
+      ucalc_db:
+        condition: service_healthy
+    networks:
+      - ucalc_net
+
+  ucalc_nginx:
+    build:
+      context: .
+      dockerfile: ucalc_nginx/ucalc_Dockerfile.nginx
+    container_name: ucalc_nginx
+    restart: unless-stopped
+    ports:
+      - "${UCALC_NGINX_PORT:-8200}:80"
+    depends_on:
+      - ucalc_api
+    networks:
+      - ucalc_net
+
+  ucalc_adminer:
+    image: adminer:latest
+    container_name: ucalc_adminer
+    restart: unless-stopped
+    ports:
+      - "${UCALC_ADMINER_PORT:-8204}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: ucalc_db
+    networks:
+      - ucalc_net
+
+  ucalc_backup:
+    build:
+      context: .
+      dockerfile: ucalc_backup/ucalc_Dockerfile.backup
+    container_name: ucalc_backup
+    restart: unless-stopped
+    environment:
+      DB_HOST: ucalc_db
+      DB_PORT: 5432
+      DB_NAME: ${UCALC_DB_NAME}
+      DB_USER: ${UCALC_DB_USER}
+      DB_PASSWORD: ${UCALC_DB_PASSWORD}
+      YADISK_TOKEN: ${UCALC_YADISK_TOKEN}
+    depends_on:
+      ucalc_db:
+        condition: service_healthy
+    networks:
+      - ucalc_net
+
+volumes:
+  ucalc_pgdata:
+    name: ucalc_pgdata
+
+networks:
+  ucalc_net:
+    name: ucalc_net
+    driver: bridge
