@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: ucalc-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./ucalc_api/ucalc_Dockerfile.api
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: UCALC_DB_URL
+        fromDatabase:
+          name: ucalc-db
+          property: connectionString
+
+databases:
+  - name: ucalc-db
+    plan: free
+    databaseName: ucalc_db
+    user: ucalc_user
